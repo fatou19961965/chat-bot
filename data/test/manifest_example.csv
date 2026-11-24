@@ -1,0 +1,3 @@
+audio_path,reference,reference_fr,speaker_id,gender,condition,code_switch,source
+data/test/audio/utt_0001.wav,"Salaamaalekum, naka nga def?","Bonjour, comment vas-tu ?",spk01,F,mobile_calme,0,interne
+data/test/audio/utt_0002.wav,"Dama bëgg ubbi <fr>compte</fr> ci banque bi.","Je veux ouvrir un compte à la banque.",spk02,M,mobile_bruit,1,interne

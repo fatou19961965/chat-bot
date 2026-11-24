@@ -1,0 +1,7 @@
+-r requirements.txt
+jiwer>=3.0
+sacrebleu>=2.4
+datasets>=2.19,<4
+matplotlib>=3.8
+soundfile>=0.12
+librosa>=0.10

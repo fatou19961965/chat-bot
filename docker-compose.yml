@@ -1,0 +1,33 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      WVC_OLLAMA_URL: http://ollama:11434     # Gemma est servi par le conteneur ollama
+    ports: ["8000:8000"]
+    volumes:
+      - hf-cache:/models      # poids ASR + TTS (≈ 4 Go au premier lancement)
+      - ./runtime:/data       # journal SQLite + audio (actif de données)
+    depends_on: [ollama]
+    restart: unless-stopped
+    # Décommenter pour un GPU NVIDIA (et construire avec TORCH_INDEX CUDA) :
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+
+  # Gemma (traduction wolof → français, et assistant si WVC_LLM_ENABLED=1)
+  # Le modèle (WVC_GEMMA_MODEL) est téléchargé automatiquement au 1er démarrage.
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollama:/root/.ollama]
+    restart: unless-stopped
+    # GPU NVIDIA :
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+
+volumes:
+  hf-cache:
+  ollama:

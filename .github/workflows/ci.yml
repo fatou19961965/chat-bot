@@ -1,0 +1,25 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check app eval scripts tests
+      - run: WVC_MOCK_MODELS=1 pytest -q
+
+  # Harnais d'évaluation rejoué quand un commit contient [eval] (changement de
+  # modèle ou de chaîne). Runner auto-hébergé : le jeu de test est confidentiel.
+  evaluation:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[eval]')
+    runs-on: [self-hosted, gpu]
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements-eval.txt
+      - run: python -m eval.asr_benchmark --manifest "$WVC_TEST_MANIFEST" --models "$WVC_ASR_MODEL" --out results/asr
+      - run: python scripts/check_regression.py results/asr/summary.json --baseline results_baseline/asr_summary.json --tolerance 0.01

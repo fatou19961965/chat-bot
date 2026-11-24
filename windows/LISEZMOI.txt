@@ -1,0 +1,34 @@
+CHATBOT VOCAL WOLOF -> FRANCAIS : UTILISATION SOUS WINDOWS
+===========================================================
+
+Double-cliquez sur les fichiers .bat de ce dossier :
+
+1. installer.bat   une seule fois : Python, ffmpeg, Ollama + Gemma, dependances, tests
+2. lancer.bat      demarre le chatbot ; le navigateur s'ouvre tout seul
+3. evaluer.bat     benchmarks + courbe de degradation (resultats dans results\)
+
+Options (dans PowerShell, depuis le dossier du projet) :
+   windows\lancer.ps1 -Simulation      interface seule, sans modeles
+   windows\lancer.ps1 -Gemma gemma4:e2b   Gemma plus leger (PC avec 8 Go de RAM)
+   windows\lancer.ps1 -Gemma gemma4:12b   Gemma plus precis (GPU conseille)
+   windows\lancer.ps1 -ASR whosper        reconnaissance wolof + mots francais (plus lente)
+   windows\lancer.ps1 -ASR whisper-small  reconnaissance wolof rapide
+   windows\lancer.ps1 -ASR xlsr           autre modele wolof (XLS-R)
+   windows\lancer.ps1 -Bruyant            reduction de bruit plus forte (marche, rue...)
+   windows\lancer.ps1 -Assistant          l'assistant repond en francais (meme Gemma)
+   windows\lancer.ps1 -NLLB               ancien moteur de traduction NLLB
+   windows\evaluer.ps1 -Limite 0       jeu de test complet (plusieurs heures sur CPU)
+   windows\evaluer.ps1 -SansWhisper    sans le controle negatif Whisper
+
+Traduction : par defaut le modele Gemma (gemma4:e4b) tourne sur votre PC
+grace a Ollama. Les exemples de data\memoire_traduction.tsv et vos
+corrections lui sont montres a chaque traduction : plus vous corrigez,
+mieux il traduit.
+
+Utilisation du chatbot :
+ - Micro : cliquer (rouge), parler wolof, recliquer pour traduire.
+ - Clavier : ecrire en wolof puis "Traduire".
+ - "Corriger" enregistre la bonne traduction : elle est mesuree et ajoutee
+   a la memoire de traduction.
+ - La courbe de qualite s'affiche sous chaque nouvelle traduction et dans
+   "Evolution de la qualite" (onglet Qualite si la fenetre est etroite).

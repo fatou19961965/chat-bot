@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+runtime/
+results/
+models/
+data/fleurs/
+data/kallaama/
+data/flores200_dataset/
+data/test/audio/
+data/interne/
+.pytest_cache/

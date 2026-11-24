@@ -1,0 +1,11 @@
+# Service (torch s'installe séparément, CPU ou CUDA : voir Dockerfile / README)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+numpy>=1.26
+transformers>=4.44
+sentencepiece>=0.2
+safetensors>=0.4
+accelerate>=0.30
+peft>=0.11            # adaptateurs LoRA (ex. CAYTU/whosper-large-v2)
+ctranslate2>=4.5      # traduction rapide (WVC_MT_BACKEND=rapide) ; facultatif

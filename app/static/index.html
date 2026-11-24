@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Làkk — wolof vers français</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>">
+<style>
+:root{
+  --night:#161B3A; --indigo:#2B3C8F; --indigo-2:#4658B8; --indigo-soft:#E2E6F7;
+  --dusk:#B8617A; --sun:#F0A45B; --gold:#E0B341;
+  --bg:#EEF0F7; --panel:#FFFFFF; --ink:#1A1F3A; --muted:#5C6485; --line:#D5DAEA;
+  --good:#2F7A57; --mid:#B07F0A; --poor:#B23A48;
+  --ui:"Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --voice:Georgia, "Palatino Linotype", "Book Antiqua", serif;
+  --lvl:0;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0F1328;--panel:#191F3B;--ink:#E8EBF7;--muted:#9BA4C6;--line:#2C3558;--indigo-soft:#262F58;
+        --indigo:#7E90F0;--indigo-2:#9AA8F5;--good:#5FC392;--mid:#E3B544;--poor:#EF7886}
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--ui);
+     padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.app{display:grid;grid-template-rows:auto auto 1fr auto;height:100%}
+
+/* ---------- Bandeau illustré ---------- */
+.hero{position:relative;min-height:190px;color:#fff;display:flex;align-items:flex-end;
+      background:url("/static/img/hero.svg") center bottom/cover no-repeat, var(--night)}
+.hero.photo{background:var(--photo) center/cover no-repeat, var(--night)}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(22,27,58,0) 35%,rgba(22,27,58,.75))}
+.hero-in{position:relative;z-index:1;width:100%;max-width:1240px;margin:0 auto;padding:1.2rem 1.5rem 1.1rem;
+         display:flex;justify-content:space-between;align-items:flex-end;gap:1rem}
+.brand h1{font:700 3rem/1 var(--voice);margin:0;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.brand p{margin:.35rem 0 0;font-size:1.05rem;opacity:.92}
+.hero-tools{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);
+      border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:.3rem .8rem;font-size:.85rem}
+.pill i{width:.55rem;height:.55rem;border-radius:50%;background:var(--gold)}
+.pill.ok i{background:#6EE7A8}
+.pill button{all:unset;cursor:pointer}
+
+/* ---------- Onglets (mobile) ---------- */
+.tabs{display:none;gap:.4rem;padding:.6rem 1rem 0}
+.tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:.45rem;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--indigo);border-color:var(--indigo);color:#fff}
+
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:1.4rem;width:100%;max-width:1240px;margin:0 auto;
+     padding:1.1rem 1.5rem 0;min-height:0}
+@media (max-width:900px){
+  .tabs{display:flex} main{grid-template-columns:1fr;padding:.8rem 1rem 0}
+  main[data-view=chat] .dash{display:none} main[data-view=dash] .conv{display:none}
+  .hero{min-height:140px} .brand h1{font-size:2.2rem} .hero-tools .pill.models{display:none}
+}
+
+/* ---------- Conversation ---------- */
+.conv{overflow:auto;min-height:0;padding:0 .2rem 1rem;scroll-behavior:smooth}
+.empty{display:grid;justify-items:center;text-align:center;gap:.4rem;margin:8vh auto 0;max-width:30rem;color:var(--muted)}
+.empty strong{font:600 1.4rem/1.3 var(--voice);color:var(--ink)}
+.empty .ex{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-top:.6rem}
+.empty .ex button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:.3rem .8rem;cursor:pointer;font-family:var(--voice);font-style:italic}
+.pair{margin:0 0 1.2rem}
+.you{display:flex;justify-content:flex-end}
+.you .b{background:var(--indigo);color:#fff;border-radius:16px 16px 4px 16px;padding:.6rem .95rem;max-width:80%}
+.you .b small{display:block;font-size:.72rem;opacity:.8}
+.you .wo{font:italic 1.05rem/1.45 var(--voice);margin:0}
+.bot{display:flex;gap:.6rem;align-items:flex-start;margin-top:.55rem}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,#4B3F7E,#F0A45B);display:grid;place-items:center}
+.avatar svg{width:26px;height:26px}
+.bot .b{background:var(--panel);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:.8rem 1rem;flex:1;max-width:88%;
+        border-top:3px solid var(--q,var(--line))}
+.bot small{font-size:.72rem;color:var(--muted)}
+.fr{font:600 1.3rem/1.35 var(--voice);margin:.1rem 0 .6rem}
+.pair.doubt .fr{color:var(--muted);text-decoration:underline dotted var(--poor)}
+.note{font-size:.88rem;color:var(--poor);margin:-.3rem 0 .6rem}
+.tm{display:inline-block;font-size:.72rem;background:var(--indigo-soft);color:var(--indigo);border-radius:999px;padding:.05rem .55rem;margin-left:.4rem}
+.after{margin-top:.9rem;padding-top:.7rem;border-top:1px solid var(--line)}
+.after-head{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-bottom:.3rem}
+.after-head strong{color:var(--ink)}
+.after canvas{height:120px}
+.reply{border-top:1px dashed var(--line);padding-top:.5rem;color:var(--muted)}
+.qrow{display:flex;gap:.9rem;align-items:center}
+.ring{flex:none;width:54px;height:54px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .track{stroke:var(--indigo-soft)} .ring .val{stroke:var(--q)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:.85rem}
+.qtxt{font-size:.9rem;line-height:1.35} .qtxt strong{color:var(--q)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:.7rem;font-size:.76rem;color:var(--muted)}
+.mini i{display:block;height:5px;border-radius:3px;background:var(--indigo-soft);margin-top:.2rem;overflow:hidden}
+.mini i b{display:block;height:100%;width:calc(var(--v)*100%);background:var(--indigo-2)}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
+.acts button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:.25rem .75rem;cursor:pointer;font-size:.86rem}
+.acts button:hover{border-color:var(--indigo)}
+details{margin-top:.5rem;font-size:.86rem;color:var(--muted)}
+.fix{display:none;gap:.5rem;margin-top:.7rem}
+.fix.open{display:grid}
+.fix label{font-size:.84rem;color:var(--muted)}
+.fix textarea{width:100%;min-height:2.6rem;border:1px solid var(--line);border-radius:8px;padding:.45rem;background:var(--bg);resize:vertical}
+.fix .save{background:var(--indigo);color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;cursor:pointer;justify-self:start}
+.fix .res{font-size:.88rem}
+.err{color:var(--poor)}
+.pending .b{opacity:.7}
+.dots::after{content:"…";animation:dots 1.2s steps(3,end) infinite}
+@keyframes dots{0%{content:"."}33%{content:".."}66%{content:"..."}}
+
+/* ---------- Tableau de qualité ---------- */
+.dash{overflow:auto;min-height:0;padding-bottom:1rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem}
+.card h2{font:600 1.1rem var(--voice);margin:0}
+.card .sub{font-size:.8rem;color:var(--muted);margin:.15rem 0 .8rem}
+.overview{display:flex;gap:1rem;align-items:center}
+.big{flex:none;width:120px;height:120px;position:relative}
+.big svg{width:100%;height:100%;transform:rotate(-90deg)}
+.big .track{stroke:var(--indigo-soft)}
+.big .val{stroke:url(#grad)}
+.big div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.big div b{font:700 1.8rem/1 var(--voice)} .big div span{font-size:.72rem;color:var(--muted)}
+.bars{flex:1;display:grid;gap:.55rem;font-size:.84rem}
+.bars i{display:block;height:8px;border-radius:4px;background:var(--indigo-soft);overflow:hidden;margin-top:.15rem}
+.bars i b{display:block;height:100%;width:calc(var(--v)*100%);background:linear-gradient(90deg,var(--indigo),var(--dusk))}
+.split{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:.9rem 0 .35rem;background:var(--indigo-soft)}
+.legend{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:.6rem;height:.6rem;border-radius:2px;margin-right:.3rem;background:var(--c)}
+canvas{width:100%;height:220px;display:block}
+.keys{display:flex;gap:1rem;font-size:.78rem;color:var(--muted);margin-top:.4rem}
+.keys span::before{content:"";display:inline-block;width:.9rem;height:3px;vertical-align:middle;margin-right:.35rem;background:var(--c)}
+dl{display:grid;grid-template-columns:1fr auto;gap:.3rem .8rem;margin:0;font-size:.9rem}
+dt{color:var(--muted)} dd{margin:0;font-weight:700;text-align:right}
+
+/* ---------- Dock micro ---------- */
+.dock{background:var(--panel);border-top:1px solid var(--line)}
+.dock-in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;max-width:1240px;margin:0 auto;padding:.8rem 1.5rem 1rem}
+.hint{color:var(--muted);font-size:.9rem}
+.mic{--ring:calc(5px + var(--lvl)*26px);width:84px;height:84px;border-radius:50%;border:none;cursor:pointer;color:#fff;
+     background:linear-gradient(160deg,var(--indigo),#4B3F7E);display:grid;place-items:center;
+     box-shadow:0 0 0 var(--ring) color-mix(in srgb,var(--indigo) 20%,transparent),0 8px 20px rgba(43,60,143,.35);transition:box-shadow .08s linear}
+.mic svg{width:32px;height:32px}
+.mic[data-state=rec]{background:linear-gradient(160deg,var(--poor),#D2645A);box-shadow:0 0 0 var(--ring) color-mix(in srgb,var(--poor) 25%,transparent)}
+.mic[data-state=busy]{background:var(--muted);cursor:progress}
+.type{display:flex;gap:.5rem;justify-self:end;width:100%;max-width:360px}
+.type input{flex:1;border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;background:var(--bg)}
+.type button{border:none;background:var(--indigo);color:#fff;border-radius:10px;padding:.45rem .9rem;cursor:pointer}
+@media (max-width:900px){.dock-in{grid-template-columns:1fr;justify-items:center;gap:.55rem;padding:.6rem 1rem .8rem}.hint{text-align:center;font-size:.85rem}.type{justify-self:center}}
+
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);max-width:420px;width:92vw}
+dialog label{display:block;margin:.7rem 0 .2rem;font-size:.9rem}
+dialog input,dialog select{width:100%;padding:.45rem;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+@media (prefers-reduced-motion:reduce){.mic{transition:none}.conv{scroll-behavior:auto}.dots::after{animation:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B3C8F"/><stop offset="1" stop-color="#F0A45B"/></linearGradient>
+    <symbol id="tree" viewBox="0 0 40 40"><path d="M17 38 C17.5 30 18 24 18.5 20 L21.5 20 C22 24 22.5 30 23 38 Z" fill="#fff"/><path d="M20 21 C14 17 9 16 5 13 M20 21 C19 15 17 11 14 7 M20 21 C22 15 24 11 25 6 M20 21 C26 17 31 16 35 12" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="hero">
+    <div class="hero-in">
+      <div class="brand">
+        <h1>Làkk</h1>
+        <p>Parlez wolof, écoutez en français.</p>
+      </div>
+      <div class="hero-tools">
+        <span class="pill models" id="models"><i></i><span id="modelsTxt">Connexion…</span></span>
+        <span class="pill"><button id="openSettings" type="button">Réglages</button></span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="chat">Conversation</button>
+    <button role="tab" aria-selected="false" data-view="dash">Qualité</button>
+  </nav>
+
+  <main id="main" data-view="chat">
+    <section class="conv" id="conv" aria-live="polite">
+      <div class="empty" id="empty">
+        <svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="url(#grad)"/><use href="#tree"/></svg>
+        <strong>Salaamaalekum !</strong>
+        <span>Appuyez sur le micro, parlez en wolof, puis appuyez à nouveau pour obtenir la traduction française. Vous pouvez aussi écrire.</span>
+        <div class="ex">
+          <button type="button">naka nga def</button>
+          <button type="button">jërëjëf</button>
+          <button type="button">dama bëgg lekk</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="dash" aria-label="Suivi de la qualité">
+      <section class="card">
+        <h2>Évolution de la qualité</h2>
+        <p class="sub">Chaque point est un message. Au-dessus de la ligne verte : fiable.</p>
+        <canvas id="trend" aria-label="Évolution de la qualité par message"></canvas>
+        <div class="keys"><span style="--c:var(--indigo-2)">Score estimé</span><span style="--c:var(--sun)">chrF++ mesuré (corrigés)</span></div>
+      </section>
+      <section class="card">
+        <h2>Qualité des traductions</h2>
+        <p class="sub">Fiabilité estimée sur les derniers messages</p>
+        <div class="overview">
+          <div class="big">
+            <svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.2"/>
+              <circle class="val" id="bigVal" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 100"/></svg>
+            <div><b id="bigPct">—</b><span>score moyen</span></div>
+          </div>
+          <div class="bars" id="bars"></div>
+        </div>
+        <div class="split" id="split"></div>
+        <div class="legend">
+          <span style="--c:var(--good)" id="lgGood">Fiables</span>
+          <span style="--c:var(--mid)" id="lgMid">À vérifier</span>
+          <span style="--c:var(--poor)" id="lgPoor">Peu fiables</span>
+        </div>
+      </section>
+
+
+      <section class="card">
+        <h2>Qualité mesurée</h2>
+        <p class="sub">Calculée à partir de vos corrections</p>
+        <dl id="meas"></dl>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="dock">
+    <div class="dock-in">
+      <div class="hint" id="hint">Appuyez sur le micro ou sur la barre d'espace.</div>
+      <button class="mic" id="mic" type="button" data-state="idle" aria-label="Commencer l'enregistrement">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+      </button>
+      <form class="type" id="typeForm">
+        <input id="typeInput" placeholder="Ou écrivez en wolof…" aria-label="Texte en wolof à traduire" autocomplete="off">
+        <button type="submit">Traduire</button>
+      </form>
+    </div>
+  </footer>
+</div>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2 style="font:600 1.15rem var(--voice);margin:0">Réglages</h2>
+    <label for="apiKey">Clé d'API</label>
+    <input id="apiKey" autocomplete="off" placeholder="Laisser vide si aucune clé n'est configurée">
+    <label for="voice">Voix française</label>
+    <select id="voice">
+      <option value="auto">Automatique (navigateur, sinon serveur)</option>
+      <option value="browser">Voix du navigateur seulement</option>
+      <option value="server">Synthèse du serveur (MMS-TTS, fonctionne partout)</option>
+      <option value="off">Pas de lecture automatique</option>
+    </select>
+    <label for="doubt">Quand la traduction est incertaine</label>
+    <select id="doubt">
+      <option value="read">La lire quand même (avertissement affiché)</option>
+      <option value="ask">Demander de répéter</option>
+    </select>
+    <p style="margin-top:1rem;text-align:right"><button value="ok" style="border:none;background:var(--indigo);color:#fff;border-radius:8px;padding:.4rem 1rem">Enregistrer</button></p>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const conv=$("#conv"), mic=$("#mic"), hint=$("#hint");
+const store = {
+  get(k,d){ try{ return localStorage.getItem(k) ?? d }catch{ return d } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch{} }
+};
+const cfg = {
+  get key(){ return store.get("wvc_key","") }, set key(v){ store.set("wvc_key",v) },
+  get voice(){ return store.get("wvc_voice2","auto") }, set voice(v){ store.set("wvc_voice2",v) },
+  get doubt(){ return store.get("wvc_doubt","read") }, set doubt(v){ store.set("wvc_doubt",v) },
+};
+const COL = {bon:"var(--good)", moyen:"var(--mid)", faible:"var(--poor)"};
+const LBL = {bon:"Fiable", moyen:"À vérifier", faible:"Peu fiable"};
+const TH = {good:.70, poor:.45};
+const history = [];   // {score, level, asr, mt, rt, chrf, typed}
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = v => v==null || isNaN(v) ? "—" : `${Math.round(v*100)} %`;
+
+async function api(path, opts={}){
+  const h = cfg.key ? {"X-API-Key":cfg.key} : {};
+  const r = await fetch(path, {...opts, headers:{...h, ...(opts.headers||{})}});
+  if(!r.ok){ let m=`Erreur ${r.status}`; try{ m=(await r.json()).detail||m }catch{}; throw new Error(m); }
+  return r.headers.get("content-type")?.includes("json") ? r.json() : r.text();
+}
+
+/* ---------- État des modèles ---------- */
+async function pollHealth(){
+  try{
+    const h = await api("/api/health"), c = h.charges || {};
+    const ready = h.modeles.simulation || (c.asr && c.mt);
+    $("#models").classList.toggle("ok", !!ready);
+    $("#modelsTxt").textContent = h.modeles.simulation ? "Mode simulation"
+      : ready ? "Modèles prêts"
+      : "Modèles chargés au premier message (1 à 2 min)";
+    if(!ready) setTimeout(pollHealth, 5000);
+  }catch{ $("#modelsTxt").textContent = "Serveur injoignable"; setTimeout(pollHealth, 5000); }
+}
+
+/* ---------- Onglets mobile ---------- */
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x===b));
+  $("#main").dataset.view = b.dataset.view; if(b.dataset.view==="dash") drawTrend();
+});
+
+/* ---------- Enregistrement ---------- */
+let rec=null, chunks=[], stream=null, raf=0, actx=null;
+async function start(){
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,noiseSuppression:true,echoCancellation:true,autoGainControl:true}});
+  }catch{ hint.innerHTML = `<span class="err">Micro bloqué : cliquez sur le cadenas à gauche de l'adresse, autorisez le micro, puis rechargez.</span>`; return; }
+  const type = ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
+  rec = new MediaRecorder(stream, type ? {mimeType:type} : {});
+  chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => send(new Blob(chunks, {type: rec?.mimeType || type || "audio/webm"}));
+  rec.start(); meter();
+  mic.dataset.state="rec"; mic.setAttribute("aria-label","Arrêter et traduire");
+  hint.innerHTML = "<strong>J'écoute.</strong> Parlez, puis appuyez à nouveau sur le micro pour traduire.";
+}
+function stop(){
+  if(!rec) return;
+  const r = rec; rec = null; r.stop();
+  stream.getTracks().forEach(t => t.stop());
+  cancelAnimationFrame(raf); mic.style.setProperty("--lvl",0);
+  actx && actx.close(); actx=null;
+}
+function meter(){
+  actx = new (window.AudioContext||window.webkitAudioContext)();
+  const an = actx.createAnalyser(); an.fftSize=512;
+  actx.createMediaStreamSource(stream).connect(an);
+  const buf = new Float32Array(an.fftSize);
+  const tick = () => { an.getFloatTimeDomainData(buf); let s=0; for(const v of buf) s+=v*v;
+    mic.style.setProperty("--lvl", Math.min(1, Math.sqrt(s/buf.length)*6).toFixed(3)); raf=requestAnimationFrame(tick); };
+  tick();
+}
+mic.onclick = () => { if(mic.dataset.state==="busy") return; mic.dataset.state==="rec" ? stop() : start(); };
+document.addEventListener("keydown", e => {
+  if(e.code==="Space" && !e.repeat && !["INPUT","TEXTAREA","SELECT","BUTTON"].includes(document.activeElement.tagName)){ e.preventDefault(); mic.click(); }
+});
+
+/* ---------- Envoi ---------- */
+function busy(on, msg){
+  mic.dataset.state = on ? "busy" : "idle";
+  mic.setAttribute("aria-label", on ? "Traitement en cours" : "Commencer l'enregistrement");
+  $("#typeForm button").disabled = on;
+  if(msg) hint.innerHTML = msg;
+}
+async function send(blob){
+  const card = pending(null);
+  busy(true, `<span class="dots">Transcription et traduction en cours</span>`);
+  const fd = new FormData();
+  const ext = (blob.type.split("/")[1]||"webm").split(";")[0];
+  fd.append("audio", blob, `enregistrement.${ext}`);
+  fd.append("tts", cfg.voice==="server" ? "true" : "false");
+  try{
+    const r = await api("/api/pipeline", {method:"POST", body:fd});
+    render(card, r); speak(r);
+    hint.textContent = r.incertain ? r.qualite.advice : "Appuyez sur le micro pour continuer.";
+  }catch(e){ card.remove(); hint.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  finally{ busy(false); refreshStats(); }
+}
+async function sendText(t){
+  const card = pending(t);
+  busy(true, `<span class="dots">Traduction en cours</span>`);
+  try{
+    const r = await api("/api/translate", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({texte:t})});
+    render(card, r); speak(r);
+    hint.textContent = "Appuyez sur le micro ou écrivez une autre phrase.";
+  }catch(e){ card.remove(); hint.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  finally{ busy(false); refreshStats(); }
+}
+$("#typeForm").onsubmit = e => { e.preventDefault(); const t=$("#typeInput").value.trim(); if(!t || mic.dataset.state==="busy") return; $("#typeInput").value=""; sendText(t); };
+document.querySelectorAll(".empty .ex button").forEach(b => b.onclick = () => sendText(b.textContent));
+
+/* ---------- Rendu des messages ---------- */
+const TREE = `<div class="avatar" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#tree"/></svg></div>`;
+function pending(text){
+  $("#empty")?.remove();
+  const a = document.createElement("article");
+  a.className = "pair pending";
+  a.innerHTML = `<div class="you"><div class="b"><small>Vous · wolof</small><p class="wo">${text ? esc(text) : '<span class="dots">Écoute</span>'}</p></div></div>
+    <div class="bot">${TREE}<div class="b"><small>Làkk · français</small><p class="fr"><span class="dots">Je traduis</span></p></div></div>`;
+  conv.appendChild(a); conv.scrollTop = conv.scrollHeight; return a;
+}
+const bar = (label, v) => `<div>${label} · ${pct(v)}<i><b style="--v:${Math.max(0,Math.min(1,v||0))}"></b></i></div>`;
+const ring = (score) => `<div class="ring"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.4"/>
+  <circle class="val" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.round(score*100)} 100"/></svg><b>${Math.round(score*100)}</b></div>`;
+
+function render(card, r, fromHistory=false){
+  const q = r.qualite;
+  card.classList.remove("pending");
+  card.classList.toggle("doubt", !!r.incertain);
+  card.style.setProperty("--q", COL[q.level] || "var(--line)");
+  const alts = (r.candidats||[]).flat();
+  card.innerHTML = `
+    <div class="you"><div class="b"><small>Vous · wolof${r.saisie ? " (écrit)" : ""}</small><p class="wo" lang="wo">${esc(r.transcription_post || "(rien de reconnu)")}</p></div></div>
+    <div class="bot">${TREE}<div class="b">
+      <small>Làkk · français</small>${r.memoire && r.memoire.depuis_memoire ? `<span class="tm">Mémoire de traduction${r.memoire.approchee ? " (correspondance approchée)" : ""}</span>` : ""}
+      <p class="fr" lang="fr">${esc(r.traduction || "—")}</p>
+      ${r.incertain ? `<p class="note">Traduction incertaine : vérifiez le sens, ou corrigez-la pour améliorer le système.</p>` : ""}
+      ${r.reponse ? `<p class="reply">${esc(r.reponse)}</p>` : ""}
+      <div class="qrow">${ring(q.score)}<div class="qtxt"><strong>${LBL[q.level]||""}</strong>${q.advice ? ` · ${esc(q.advice)}` : ""}</div></div>
+      <div class="mini">${r.saisie ? "<div>Saisie écrite</div>" : bar("Reconnaissance", q.asr_confidence)}${bar("Traduction", q.mt_confidence)}${bar("Aller-retour", (q.roundtrip_chrf||0)/100)}</div>
+      <div class="acts"><button type="button" data-act="play">Réécouter</button><button type="button" data-act="fix">Corriger</button></div>
+      ${alts.length>1 ? `<details><summary>Autres traductions envisagées</summary><ol>${alts.map(c=>`<li>${esc(c.texte)}</li>`).join("")}</ol></details>` : ""}
+      <div class="fix">
+        <label>Texte wolof correct (orthographe CLAD)<textarea data-f="t">${esc(r.transcription_post)}</textarea></label>
+        <label>Traduction correcte en français<textarea data-f="f">${esc(r.traduction)}</textarea></label>
+        <button type="button" class="save" data-act="save">Enregistrer la correction</button>
+        <span class="res"></span>
+      </div>
+    </div></div>`;
+  card.querySelector("[data-act=play]").onclick = () => browserSpeak(r.traduction);
+  card.querySelector("[data-act=fix]").onclick = () => card.querySelector(".fix").classList.toggle("open");
+  card.querySelector("[data-act=save]").onclick = async () => {
+    const res = card.querySelector(".res");
+    if(!r.id){ res.innerHTML = `<span class="err">Ce message n'a pas été enregistré par le serveur.</span>`; return; }
+    const t = card.querySelector("[data-f=t]").value.trim(), f = card.querySelector("[data-f=f]").value.trim();
+    try{
+      const out = await api(`/api/inferences/${r.id}/correction`, {method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ref_transcription:t||null, ref_traduction:f||null})});
+      const m = out.mesures, parts=[];
+      if(m.wer!=null) parts.push(`erreurs de reconnaissance ${pct(m.wer)}`);
+      if(m.chrfpp!=null) parts.push(`qualité de traduction (chrF++) ${m.chrfpp.toFixed(0)} / 100`);
+      res.textContent = `Correction enregistrée. ${parts.join(", ")}${out.memoire_enrichie ? ". Ajoutée à la mémoire de traduction." : ""}`;
+      const h = history.find(x => x.id===r.id); if(h && m.chrfpp!=null){ h.chrf = m.chrfpp/100; drawTrend();
+        const ac = document.querySelector(".after canvas"); if(ac) drawChart(ac, history.slice(-20), {compact:true, highlightLast:true}); }
+      refreshStats();
+    }catch(e){ res.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  };
+  if(!fromHistory){
+    history.push({id:r.id, score:q.score, level:q.level, asr:r.saisie?null:q.asr_confidence, mt:q.mt_confidence, rt:(q.roundtrip_chrf||0)/100, chrf:null});
+    drawDash();
+    showAfterChart(card);
+  }
+  conv.scrollTop = conv.scrollHeight;
+}
+
+/* ---------- Voix ---------- */
+function speak(r){
+  if(cfg.voice==="off") return;
+  if(r.incertain && cfg.doubt==="ask"){ say(r.message_incertain || "Pouvez-vous répéter ?"); return; }
+  if(cfg.voice==="server" && r.audio_fr_wav_b64){ playWav("data:audio/wav;base64,"+r.audio_fr_wav_b64); return; }
+  say(r.traduction);
+}
+let currentAudio = null;
+function playWav(url){
+  if(currentAudio){ currentAudio.pause(); }
+  currentAudio = new Audio(url);
+  return currentAudio.play();
+}
+async function serverSpeak(text){
+  try{
+    const h = cfg.key ? {"X-API-Key":cfg.key} : {};
+    const r = await fetch("/api/tts", {method:"POST", headers:{...h, "Content-Type":"application/json"}, body:JSON.stringify({texte:text})});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    await playWav(URL.createObjectURL(await r.blob()));
+  }catch(e){ console.warn("Voix du serveur indisponible :", e); }
+}
+function frVoice(){
+  if(!("speechSynthesis" in window)) return null;
+  const vs = speechSynthesis.getVoices();
+  return vs.find(v => v.lang && v.lang.toLowerCase().startsWith("fr") && v.localService) ||
+         vs.find(v => v.lang && v.lang.toLowerCase().startsWith("fr")) || null;
+}
+if("speechSynthesis" in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); }
+/* Voix du navigateur si elle existe et démarre vraiment ; sinon voix du serveur.
+   Sur beaucoup de PC d'entreprise, le navigateur n'a pas de voix française ou
+   sa voix en ligne est bloquée : rien ne se passe, sans erreur. */
+function say(text){
+  if(!text) return;
+  const v = frVoice();
+  if(cfg.voice==="server" || !v){ if(cfg.voice!=="browser") serverSpeak(text); return; }
+  let started = false, done = false;
+  const fallback = () => { if(done) return; done = true; speechSynthesis.cancel(); if(cfg.voice!=="browser") serverSpeak(text); };
+  const u = new SpeechSynthesisUtterance(text); u.lang = "fr-FR"; u.voice = v;
+  u.onstart = () => { started = true; };
+  u.onerror = e => { if(e.error!=="interrupted" && e.error!=="canceled") fallback(); };
+  speechSynthesis.cancel(); speechSynthesis.resume();
+  setTimeout(() => speechSynthesis.speak(u), 60);
+  setTimeout(() => { if(!started) fallback(); }, 2500);
+}
+function browserSpeak(text){ say(text); }
+
+/* ---------- Tableau de qualité ---------- */
+const avg = a => { const v=a.filter(x=>x!=null && !isNaN(x)); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : null; };
+function drawDash(){
+  const last = history.slice(-50);
+  const s = avg(last.map(h=>h.score));
+  $("#bigPct").textContent = s==null ? "—" : Math.round(s*100);
+  $("#bigVal").setAttribute("stroke-dasharray", `${s==null?0:Math.round(s*100)} 100`);
+  $("#bars").innerHTML = [
+    ["Reconnaissance", avg(last.map(h=>h.asr))],
+    ["Traduction", avg(last.map(h=>h.mt))],
+    ["Cohérence aller-retour", avg(last.map(h=>h.rt))],
+  ].map(([l,v]) => `<div>${l} <strong style="float:right">${pct(v)}</strong><i><b style="--v:${v||0}"></b></i></div>`).join("");
+  const n = last.length || 1, c = {bon:0,moyen:0,faible:0}; last.forEach(h => c[h.level]!=null && c[h.level]++);
+  $("#split").innerHTML = ["bon","moyen","faible"].map(k => `<span style="width:${c[k]/n*100}%;background:${COL[k]}"></span>`).join("");
+  $("#lgGood").textContent = `Fiables ${c.bon}`; $("#lgMid").textContent = `À vérifier ${c.moyen}`; $("#lgPoor").textContent = `Peu fiables ${c.faible}`;
+  drawTrend();
+}
+function drawChart(cv, pts, opts={}){
+  const dpr = window.devicePixelRatio||1, W = cv.clientWidth, H = cv.clientHeight;
+  if(!W) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  const g = cv.getContext("2d"); g.scale(dpr,dpr); g.clearRect(0,0,W,H);
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim();
+  const L=opts.compact?24:30, R=10, T=10, B=opts.compact?8:18, y = v => T + (1-v)*(H-T-B);
+  g.font = "11px sans-serif"; g.fillStyle = col("--muted");
+  (opts.compact?[0,1]:[0,.5,1]).forEach(v => g.fillText(`${v*100}`, 2, y(v)+4));
+  g.setLineDash([5,5]); g.lineWidth=1.5;
+  [[TH.good,"--good"],[TH.poor,"--poor"]].forEach(([v,c]) => { g.strokeStyle=col(c); g.beginPath(); g.moveTo(L,y(v)); g.lineTo(W-R,y(v)); g.stroke(); });
+  g.setLineDash([]);
+  if(!pts.length){ g.fillText("Les messages traduits apparaîtront ici.", L+6, H/2); return; }
+  const x = i => pts.length===1 ? (L+W-R)/2 : L + i*(W-L-R)/(pts.length-1);
+  const grad = g.createLinearGradient(0,T,0,H-B); grad.addColorStop(0,"rgba(70,88,184,.28)"); grad.addColorStop(1,"rgba(70,88,184,0)");
+  g.beginPath(); pts.forEach((p,i) => i ? g.lineTo(x(i),y(p.score)) : g.moveTo(x(i),y(p.score)));
+  g.lineTo(x(pts.length-1),H-B); g.lineTo(x(0),H-B); g.closePath(); g.fillStyle=grad; g.fill();
+  g.strokeStyle = col("--indigo-2"); g.lineWidth = 2.5; g.beginPath();
+  pts.forEach((p,i) => i ? g.lineTo(x(i),y(p.score)) : g.moveTo(x(i),y(p.score))); g.stroke();
+  pts.forEach((p,i) => { g.fillStyle = col(p.score>=TH.good?"--good":p.score>=TH.poor?"--mid":"--poor"); g.beginPath(); g.arc(x(i),y(p.score),opts.compact?3.5:4,0,7); g.fill(); });
+  pts.forEach((p,i) => { if(p.chrf==null) return; g.fillStyle = col("--sun"); g.beginPath(); g.rect(x(i)-4,y(p.chrf)-4,8,8); g.fill(); });
+  if(opts.highlightLast){
+    const i = pts.length-1, px = x(i), py = y(pts[i].score);
+    g.strokeStyle = col("--ink"); g.lineWidth = 2; g.beginPath(); g.arc(px,py,7,0,7); g.stroke();
+  }
+}
+function drawTrend(){ drawChart($("#trend"), history.slice(-50)); }
+
+/* Courbe affichée sous la dernière traduction */
+function showAfterChart(card){
+  document.querySelectorAll(".after").forEach(e => e.remove());
+  const pts = history.slice(-20), cur = pts[pts.length-1], moy = avg(pts.map(p=>p.score));
+  const prev = pts.length>1 ? pts[pts.length-2].score : null;
+  const trend = prev==null ? "" : cur.score > prev + .02 ? " · en hausse" : cur.score < prev - .02 ? " · en baisse" : " · stable";
+  const box = document.createElement("div");
+  box.className = "after";
+  box.innerHTML = `<div class="after-head"><span>Courbe de qualité de traduction (${pts.length} dernier${pts.length>1?"s":""} message${pts.length>1?"s":""})</span>
+    <span>Ce message <strong>${Math.round(cur.score*100)}</strong> · moyenne <strong>${Math.round(moy*100)}</strong>${trend}</span></div><canvas></canvas>`;
+  card.querySelector(".bot .b").appendChild(box);
+  const cv = box.querySelector("canvas");
+  requestAnimationFrame(() => drawChart(cv, pts, {compact:true, highlightLast:true}));
+  if("ResizeObserver" in window) new ResizeObserver(() => drawChart(cv, history.slice(-20), {compact:true, highlightLast:true})).observe(cv);
+  conv.scrollTop = conv.scrollHeight;
+}
+async function refreshStats(){
+  try{
+    const me = (await api("/api/stats")).mesure;
+    $("#meas").innerHTML = `
+      <dt>Messages corrigés</dt><dd>${me.enonces_corriges}</dd>
+      <dt>Erreurs de reconnaissance (WER)</dt><dd>${pct(me.wer_moyen)}</dd>
+      <dt>Erreurs par caractère (CER)</dt><dd>${pct(me.cer_moyen)}</dd>
+      <dt>Qualité de traduction (chrF++)</dt><dd>${me.chrfpp_moyen==null ? "—" : Math.round(me.chrfpp_moyen)+" / 100"}</dd>
+      <dt>Fiabilité du score estimé</dt><dd>${me.correlation_score_wer==null ? "5 corrections min." : me.correlation_score_wer}</dd>`;
+  }catch{}
+}
+async function loadHistory(){
+  try{
+    const rows = (await api("/api/inferences?limit=50")).reverse();
+    rows.forEach(row => history.push({
+      id: row.id, score: row.quality, level: row.level, asr: row.asr_conf, mt: row.mt_conf,
+      rt: row.roundtrip!=null ? row.roundtrip/100 : null, chrf: row.chrfpp!=null ? row.chrfpp/100 : null }));
+    rows.slice(-6).forEach(row => {
+      const card = pending(row.transcript_post);
+      render(card, {
+        id: row.id, transcription_post: row.transcript_post, traduction: row.translation, candidats: row.candidates,
+        saisie: row.models && row.models.asr === "saisie clavier", incertain: row.level === "faible",
+        qualite: {score: row.quality ?? 0, level: row.level, advice: "", asr_confidence: row.asr_conf, mt_confidence: row.mt_conf, roundtrip_chrf: row.roundtrip}
+      }, true);
+    });
+  }catch{}
+  drawDash();
+}
+
+/* ---------- Réglages ---------- */
+$("#openSettings").onclick = () => { $("#apiKey").value=cfg.key; $("#voice").value=cfg.voice; $("#doubt").value=cfg.doubt; $("#settings").showModal(); };
+$("#settings").addEventListener("close", () => { cfg.key=$("#apiKey").value.trim(); cfg.voice=$("#voice").value; cfg.doubt=$("#doubt").value; refreshStats(); });
+window.addEventListener("resize", drawTrend);
+if("ResizeObserver" in window) new ResizeObserver(() => drawTrend()).observe($("#trend"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", drawTrend);
+/* Photo personnelle facultative : testée une seule fois */
+(() => { const im = new Image(); im.onload = () => { const h = document.querySelector(".hero");
+  h.style.setProperty("--photo", `url("${im.src}")`); h.classList.add("photo"); }; im.src = "/static/img/hero.jpg"; })();
+pollHealth(); loadHistory(); refreshStats();
+</script>
+</body>
+</html>

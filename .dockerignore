@@ -1,0 +1,11 @@
+runtime
+results
+models
+data/fleurs
+data/kallaama
+data/interne
+data/test/audio
+data/flores200_dataset
+.git
+tests
+eval
